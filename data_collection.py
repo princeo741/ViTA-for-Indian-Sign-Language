@@ -5,14 +5,13 @@ import csv
 import time
 import os
 
-# Initialize MediaPipe Hands
+# Initialize MediaPipe Hands, Face Detection, and Pose
 mp_hands = mp.solutions.hands
-hands = mp_hands.Hands(
-    static_image_mode=False,
-    max_num_hands=2,
-    min_detection_confidence=0.7,
-    min_tracking_confidence=0.5,
-)
+hands = mp_hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_confidence=0.7, min_tracking_confidence=0.5)
+mp_face_detection = mp.solutions.face_detection
+face_detection = mp_face_detection.FaceDetection(min_detection_confidence=0.7)
+mp_pose = mp.solutions.pose
+pose = mp_pose.Pose(min_detection_confidence=0.7, min_tracking_confidence=0.5)
 
 # Initialize video capture
 cap = cv.VideoCapture(0)
@@ -68,8 +67,31 @@ while True:
     
     frame = cv.flip(frame, 1)
     rgb_frame = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
-    results = hands.process(rgb_frame)
+
+    # Process face detection
+    face_results = face_detection.process(rgb_frame)
+    face_landmarks = []
+    if face_results.detections:
+        for detection in face_results.detections:
+            for keypoint in detection.location_data.relative_keypoints:
+                face_landmarks.append([keypoint.x, keypoint.y])
+            # Draw face bounding box
+            bboxC = detection.location_data.relative_bounding_box
+            ih, iw, _ = frame.shape
+            x, y, w, h = int(bboxC.xmin * iw), int(bboxC.ymin * ih), int(bboxC.width * iw), int(bboxC.height * ih)
+            cv.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
+    # Process pose detection
+    pose_results = pose.process(rgb_frame)
+    shoulder_landmarks = []
+    if pose_results.pose_landmarks:
+        for idx in [mp_pose.PoseLandmark.LEFT_SHOULDER, mp_pose.PoseLandmark.RIGHT_SHOULDER]:
+            lm = pose_results.pose_landmarks.landmark[idx]
+            shoulder_landmarks.append([lm.x, lm.y, lm.z])
+        mp.solutions.drawing_utils.draw_landmarks(frame, pose_results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
     
+    # Process hand detection
+    results = hands.process(rgb_frame)
     if results.multi_hand_landmarks:
         for hand_landmarks in results.multi_hand_landmarks:
             landmarks = []
@@ -84,17 +106,18 @@ while True:
             
             # Convert landmarks to a flat list of coordinates
             flat_landmarks = [coord for point in landmarks for coord in point]
-            
-            # Combine normalized bounding box and flat landmarks
-            combined_features = normalized_bbox + flat_landmarks
+            flat_face_landmarks = [coord for point in face_landmarks for coord in point]
+            flat_shoulder_landmarks = [coord for point in shoulder_landmarks for coord in point]
+
+            # Combine normalized bounding box, hand landmarks, face landmarks, and shoulder landmarks
+            combined_features = normalized_bbox + flat_landmarks + flat_face_landmarks + flat_shoulder_landmarks
             
             if recording:
                 data_points.append(combined_features)
                 cv.putText(frame, "Recording...", (10, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv.LINE_AA)
             
             # Draw hand landmarks
-            mp.solutions.drawing_utils.draw_landmarks(
-                frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+            mp.solutions.drawing_utils.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
     
     cv.imshow('Sign Language Data Collection', frame)
     

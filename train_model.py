@@ -12,12 +12,25 @@ def load_data(file_path):
     with open(file_path, 'r') as f:
         reader = csv.reader(f)
         for row in reader:
-            labels.append(row[0])
-            data.append([float(x) for x in row[1:]])
+            if len(row) == 1 + feature_count:  # Check if the row has the correct number of columns
+                labels.append(row[0])
+                data.append([float(x) for x in row[1:]])
+            else:
+                print(f"Skipping row with incorrect number of columns: {row}")
 
     return np.array(data), np.array(labels)
 
+# Determine the expected number of features
+with open('data/sign_data.csv', 'r') as f:
+    reader = csv.reader(f)
+    first_row = next(reader)
+    feature_count = len(first_row) - 1
+
 data, labels = load_data('data/sign_data.csv')
+
+# Check if data is correctly loaded
+if len(data) == 0 or len(labels) == 0:
+    raise ValueError("No data was loaded. Please check the CSV file for formatting issues.")
 
 # Convert labels to one-hot encoding
 unique_labels = sorted(set(labels))
@@ -30,7 +43,8 @@ X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2,
 
 # Define the model
 model = Sequential([
-    Dense(128, activation='relu', input_shape=(X_train.shape[1],)),
+    Dense(256, activation='relu', input_shape=(X_train.shape[1],)),
+    Dense(128, activation='relu'),
     Dense(64, activation='relu'),
     Dense(len(unique_labels), activation='softmax')
 ])
