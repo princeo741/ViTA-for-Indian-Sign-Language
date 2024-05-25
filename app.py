@@ -26,12 +26,19 @@ LABEL_PATH = os.path.join(MODEL_DIR, 'keypoint_classifier_label.csv')
 
 # Mediapipe setup
 mp_hands = mp.solutions.hands
-hands = mp_hands.Hands(max_num_hands=1, min_detection_confidence=0.7, min_tracking_confidence=0.5)
+hands = mp_hands.Hands(max_num_hands=2, min_detection_confidence=0.7, min_tracking_confidence=0.5)
 
-# Load the trained model and label encoder
-model = load_model(os.path.join(MODEL_DIR, 'keypoint_classifier.hdf5'))
-le = LabelEncoder()
-le.classes_ = np.load(os.path.join(MODEL_DIR, 'label_encoder.npy'), allow_pickle=True)
+# Load the trained model and label encoder if they exist
+model_path = os.path.join(MODEL_DIR, 'keypoint_classifier.hdf5')
+label_encoder_path = os.path.join(MODEL_DIR, 'label_encoder.npy')
+
+if os.path.exists(model_path) and os.path.exists(label_encoder_path):
+    model = load_model(model_path)
+    le = LabelEncoder()
+    le.classes_ = np.load(label_encoder_path, allow_pickle=True)
+else:
+    model = None
+    le = LabelEncoder()
 
 class HandGestureApp:
     def __init__(self, root):
@@ -83,6 +90,9 @@ class HandGestureApp:
         logging.info('Stopped recording.')
 
     def start_recognition(self):
+        if model is None:
+            messagebox.showerror("Error", "No trained model found. Please train the model first.")
+            return
         self.recognizing = True
         logging.info('Started gesture recognition.')
 
@@ -112,17 +122,17 @@ class HandGestureApp:
         ret, frame = self.cap.read()
         if ret:
             frame = cv2.flip(frame, 1)
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Correct color conversion
             results = hands.process(frame_rgb)
             if results.multi_hand_landmarks:
                 for hand_landmarks in results.multi_hand_landmarks:
-                    landmark_list = self.calculate_landmark_list(frame, hand_landmarks)
-                    self.draw_landmarks(frame, landmark_list)
+                    landmark_list = self.calculate_landmark_list(frame_rgb, hand_landmarks)  # Use frame_rgb
+                    self.draw_landmarks(frame_rgb, landmark_list)  # Use frame_rgb
                     if self.recording:
                         self.log_keypoints(landmark_list, self.label)
                     if self.recognizing:
-                        self.recognize_gesture(landmark_list, frame)
-            img = Image.fromarray(frame)
+                        self.recognize_gesture(landmark_list, frame_rgb)  # Use frame_rgb
+            img = Image.fromarray(frame_rgb)  # Use frame_rgb
             imgtk = ImageTk.PhotoImage(image=img)
             self.video_label.imgtk = imgtk
             self.video_label.configure(image=imgtk)
