@@ -55,6 +55,9 @@ class HandGestureApp:
         
         self.stop_recognize_button = ttk.Button(root, text="Stop Recognizing", command=self.stop_recognition)
         self.stop_recognize_button.pack(pady=10)
+        
+        self.reset_button = ttk.Button(root, text="Reset Model", command=self.reset_model)
+        self.reset_button.pack(pady=10)
 
         self.gesture_label = ttk.Label(root, text="Recognized Gesture: None", font=("Helvetica", 16))
         self.gesture_label.pack(pady=10)
@@ -89,15 +92,18 @@ class HandGestureApp:
         logging.info('Stopped gesture recognition.')
 
     def save_label(self, label):
-        if not os.path.exists(LABEL_PATH):
-            with open(LABEL_PATH, 'w', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow([label])
-        else:
-            with open(LABEL_PATH, 'a', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow([label])
-        logging.info(f'Saved label: {label}')
+        try:
+            if not os.path.exists(LABEL_PATH):
+                with open(LABEL_PATH, 'w', newline='') as f:
+                    writer = csv.writer(f)
+                    writer.writerow([label])
+            else:
+                with open(LABEL_PATH, 'a', newline='') as f:
+                    writer = csv.writer(f)
+                    writer.writerow([label])
+            logging.info(f'Saved label: {label}')
+        except IOError as e:
+            logging.error(f'Error saving label: {e}')
 
     def update_frame(self):
         if self.cap is None:
@@ -136,56 +142,78 @@ class HandGestureApp:
             cv2.circle(image, (landmark[0], landmark[1]), 5, (0, 255, 0), -1)
 
     def log_keypoints(self, landmark_points, label):
-        landmark_flattened = np.array(landmark_points).flatten()
-        if not os.path.exists(MODEL_DIR):
-            os.makedirs(MODEL_DIR)
-        if not os.path.exists(CSV_PATH):
-            with open(CSV_PATH, 'w', newline='') as f:
+        try:
+            landmark_flattened = np.array(landmark_points).flatten()
+            if not os.path.exists(MODEL_DIR):
+                os.makedirs(MODEL_DIR)
+            if not os.path.exists(CSV_PATH):
+                with open(CSV_PATH, 'w', newline='') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(['label'] + [f'x{i}' for i in range(1, 22)] + [f'y{i}' for i in range(1, 22)])
+            with open(CSV_PATH, 'a', newline='') as f:
                 writer = csv.writer(f)
-                writer.writerow(['label'] + [f'x{i}' for i in range(1, 22)] + [f'y{i}' for i in range(1, 22)])
-        with open(CSV_PATH, 'a', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow([label, *landmark_flattened])
-        logging.info(f'Logged keypoints for label: {label}')
+                writer.writerow([label, *landmark_flattened])
+            logging.info(f'Logged keypoints for label: {label}')
+        except IOError as e:
+            logging.error(f'Error logging keypoints: {e}')
 
     def recognize_gesture(self, landmark_points, frame):
-        landmark_flattened = np.array(landmark_points).flatten().reshape(1, -1)
-        prediction = model.predict(landmark_flattened)
-        predicted_label = le.inverse_transform([np.argmax(prediction)])[0]
-        cv2.putText(frame, f'Gesture: {predicted_label}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
-        self.gesture_label.config(text=f"Recognized Gesture: {predicted_label}")
-        logging.info(f'Recognized gesture: {predicted_label}')
+        try:
+            landmark_flattened = np.array(landmark_points).flatten().reshape(1, -1)
+            prediction = model.predict(landmark_flattened)
+            predicted_label = le.inverse_transform([np.argmax(prediction)])[0]
+            cv2.putText(frame, f'Gesture: {predicted_label}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+            self.gesture_label.config(text=f"Recognized Gesture: {predicted_label}")
+            logging.info(f'Recognized gesture: {predicted_label}')
+        except Exception as e:
+            logging.error(f'Error recognizing gesture: {e}')
 
     def train_model(self):
         try:
             data = pd.read_csv(CSV_PATH, header=0)
-        except PermissionError as e:
-            logging.error(f"Failed to read file {CSV_PATH}: {e}")
-            return
-        X = data.iloc[:, 1:].values
-        y = data.iloc[:, 0].values
+            X = data.iloc[:, 1:].values
+            y = data.iloc[:, 0].values
 
-        le = LabelEncoder()
-        y = le.fit_transform(y)
+            le = LabelEncoder()
+            y = le.fit_transform(y)
 
-        num_classes = len(np.unique(y))
-        y = to_categorical(y, num_classes)
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        model = Sequential([
-            Dense(128, activation='relu', input_shape=(X_train.shape[1],)),
-            Dense(64, activation='relu'),
-            Dense(num_classes, activation='softmax')
-        ])
-        model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-        model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_test, y_test))
+            num_classes = len(np.unique(y))
+            y = to_categorical(y, num_classes)
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+            model = Sequential([
+                Dense(128, activation='relu', input_shape=(X_train.shape[1],)),
+                Dense(64, activation='relu'),
+                Dense(num_classes, activation='softmax')
+            ])
+            model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+            model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_test, y_test))
 
-        # Save the trained model and label encoder
-        model.save(os.path.join(MODEL_DIR, 'keypoint_classifier.hdf5'))
-        np.save(os.path.join(MODEL_DIR, 'label_encoder.npy'), le.classes_)
+            # Save the trained model and label encoder
+            model.save(os.path.join(MODEL_DIR, 'keypoint_classifier.hdf5'))
+            np.save(os.path.join(MODEL_DIR, 'label_encoder.npy'), le.classes_)
 
-        loss, accuracy = model.evaluate(X_test, y_test)
-        logging.info(f"Model trained with accuracy: {accuracy:.4f}")
-        messagebox.showinfo("Training Complete", f"Model trained with accuracy: {accuracy:.4f}")
+            loss, accuracy = model.evaluate(X_test, y_test)
+            logging.info(f"Model trained with accuracy: {accuracy:.4f}")
+            messagebox.showinfo("Training Complete", f"Model trained with accuracy: {accuracy:.4f}")
+        except Exception as e:
+            logging.error(f'Error training model: {e}')
+
+    def reset_model(self):
+        try:
+            # Remove existing model and label files
+            if os.path.exists(os.path.join(MODEL_DIR, 'keypoint_classifier.hdf5')):
+                os.remove(os.path.join(MODEL_DIR, 'keypoint_classifier.hdf5'))
+            if os.path.exists(os.path.join(MODEL_DIR, 'label_encoder.npy')):
+                os.remove(os.path.join(MODEL_DIR, 'label_encoder.npy'))
+            if os.path.exists(CSV_PATH):
+                os.remove(CSV_PATH)
+            if os.path.exists(LABEL_PATH):
+                os.remove(LABEL_PATH)
+            logging.info("Model and label data reset successfully.")
+            messagebox.showinfo("Reset Complete", "Model and label data have been reset.")
+        except Exception as e:
+            logging.error(f"Error resetting model: {e}")
+            messagebox.showerror("Error", f"Error resetting model: {e}")
 
 if __name__ == '__main__':
     root = tk.Tk()
