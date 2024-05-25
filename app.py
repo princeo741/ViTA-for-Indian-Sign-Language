@@ -13,6 +13,7 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.utils import to_categorical
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
+import pyttsx3
 import logging
 
 # Setup logging
@@ -40,34 +41,78 @@ else:
     model = None
     le = LabelEncoder()
 
+# Hardcoded translations
+translations = {
+    "Hello": {"hi": "नमस्ते", "kn": "ಹಲೋ"},
+    "Good": {"hi": "अच्छा", "kn": "ಚೆನ್ನಾಗಿದೆ"},
+    "Afternoon": {"hi": "दोपहर", "kn": "ಮಧ್ಯಾಹ್ನ"},
+    "Morning": {"hi": "सुबह", "kn": "ಬೆಳಗ್ಗೆ"},
+    "How are you?": {"hi": "आप कैसे हैं?", "kn": "ನೀವು ಹೇಗಿದ್ದೀರಾ?"},
+    "Namaste": {"hi": "नमस्ते", "kn": "ನಮಸ್ತೆ"},
+    "My": {"hi": "मेरा", "kn": "ನನ್ನ"},
+    "Name": {"hi": "नाम", "kn": "ಹೆಸರು"},
+    "P": {"hi": "पी", "kn": "ಪಿ"},
+    "R": {"hi": "आर", "kn": "ಆರ್"},
+    "I": {"hi": "आई", "kn": "ಐ"},
+    "N": {"hi": "एन", "kn": "ಎನ್"},
+    "C": {"hi": "सी", "kn": "ಸಿ"},
+    "E": {"hi": "ई", "kn": "ಇ"},
+    "Thank you": {"hi": "धन्यवाद", "kn": "ಧನ್ಯವಾದ"},
+    "I want water": {"hi": "मुझे पानी चाहिए", "kn": "ನನಗೆ ನೀರು ಬೇಕು"},
+    "Do you want water?": {"hi": "क्या आपको पानी चाहिए?", "kn": "ನಿಮಗೆ ನೀರು ಬೇಕೆ?"},
+    "Call Ambulance": {"hi": "एम्बुलेंस बुलाओ", "kn": "ಆಂಬ್ಯುಲೆನ್ಸ್ ಕರೆ"}
+}
+
 class HandGestureApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Hand Gesture Recognition Training")
-        
+
         self.video_label = ttk.Label(root)
-        self.video_label.pack()
+        self.video_label.grid(row=0, column=0, columnspan=2)
 
         self.start_button = ttk.Button(root, text="Start Recording", command=self.start_recording)
-        self.start_button.pack(pady=10)
+        self.start_button.grid(row=1, column=0, pady=10)
 
         self.stop_button = ttk.Button(root, text="Stop Recording", command=self.stop_recording)
-        self.stop_button.pack(pady=10)
+        self.stop_button.grid(row=1, column=1, pady=10)
 
         self.train_button = ttk.Button(root, text="Train Model", command=self.train_model)
-        self.train_button.pack(pady=10)
-        
+        self.train_button.grid(row=2, column=0, pady=10)
+
         self.recognize_button = ttk.Button(root, text="Start Recognizing", command=self.start_recognition)
-        self.recognize_button.pack(pady=10)
-        
+        self.recognize_button.grid(row=2, column=1, pady=10)
+
         self.stop_recognize_button = ttk.Button(root, text="Stop Recognizing", command=self.stop_recognition)
-        self.stop_recognize_button.pack(pady=10)
-        
+        self.stop_recognize_button.grid(row=3, column=0, pady=10)
+
         self.reset_button = ttk.Button(root, text="Reset Model", command=self.reset_model)
-        self.reset_button.pack(pady=10)
+        self.reset_button.grid(row=3, column=1, pady=10)
 
         self.gesture_label = ttk.Label(root, text="Recognized Gesture: None", font=("Helvetica", 16))
-        self.gesture_label.pack(pady=10)
+        self.gesture_label.grid(row=0, column=2, padx=10, pady=10, sticky="W")
+
+        self.history_text = tk.Text(root, width=40, height=10)
+        self.history_text.grid(row=1, column=2, rowspan=2, padx=10, pady=10)
+
+        self.predicted_text_label = ttk.Label(root, text="PREDICTED TEXT", font=("Helvetica", 12))
+        self.predicted_text_label.grid(row=3, column=2, padx=10, pady=10, sticky="W")
+
+        self.predicted_text = ttk.Label(root, text="", font=("Helvetica", 12))
+        self.predicted_text.grid(row=4, column=2, padx=10, pady=10, sticky="W")
+
+        self.language_label = ttk.Label(root, text="Language", font=("Helvetica", 12))
+        self.language_label.grid(row=5, column=0, padx=10, pady=10, sticky="W")
+
+        self.language_combobox = ttk.Combobox(root, values=["en", "hi", "kn"])
+        self.language_combobox.grid(row=5, column=1, padx=10, pady=10)
+        self.language_combobox.set("en")
+
+        self.translate_button = ttk.Button(root, text="Translate", command=self.translate_text)
+        self.translate_button.grid(row=5, column=2, padx=10, pady=10)
+
+        self.voice_button = ttk.Button(root, text="Convert to Voice", command=self.convert_to_voice)
+        self.voice_button.grid(row=6, column=2, padx=10, pady=10)
 
         self.cap = None
         self.recording = False
@@ -122,17 +167,17 @@ class HandGestureApp:
         ret, frame = self.cap.read()
         if ret:
             frame = cv2.flip(frame, 1)
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Correct color conversion
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = hands.process(frame_rgb)
             if results.multi_hand_landmarks:
                 for hand_landmarks in results.multi_hand_landmarks:
-                    landmark_list = self.calculate_landmark_list(frame_rgb, hand_landmarks)  # Use frame_rgb
-                    self.draw_landmarks(frame_rgb, landmark_list)  # Use frame_rgb
+                    landmark_list = self.calculate_landmark_list(frame_rgb, hand_landmarks)
+                    self.draw_landmarks(frame_rgb, landmark_list)
                     if self.recording:
                         self.log_keypoints(landmark_list, self.label)
                     if self.recognizing:
-                        self.recognize_gesture(landmark_list, frame_rgb)  # Use frame_rgb
-            img = Image.fromarray(frame_rgb)  # Use frame_rgb
+                        self.recognize_gesture(landmark_list, frame_rgb)
+            img = Image.fromarray(frame_rgb)
             imgtk = ImageTk.PhotoImage(image=img)
             self.video_label.imgtk = imgtk
             self.video_label.configure(image=imgtk)
@@ -174,6 +219,8 @@ class HandGestureApp:
             predicted_label = le.inverse_transform([np.argmax(prediction)])[0]
             cv2.putText(frame, f'Gesture: {predicted_label}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
             self.gesture_label.config(text=f"Recognized Gesture: {predicted_label}")
+            self.history_text.insert(tk.END, f"Recognized Gesture: {predicted_label}\n")
+            self.predicted_text.config(text=predicted_label)
             logging.info(f'Recognized gesture: {predicted_label}')
         except Exception as e:
             logging.error(f'Error recognizing gesture: {e}')
@@ -224,6 +271,23 @@ class HandGestureApp:
         except Exception as e:
             logging.error(f"Error resetting model: {e}")
             messagebox.showerror("Error", f"Error resetting model: {e}")
+
+    def translate_text(self):
+        predicted_label = self.predicted_text.cget("text")
+        language = self.language_combobox.get()
+        if predicted_label and language in translations.get(predicted_label, {}):
+            translated_text = translations[predicted_label][language]
+            self.predicted_text.config(text=translated_text)
+            self.history_text.insert(tk.END, f"Translated Gesture: {translated_text}\n")
+        else:
+            self.history_text.insert(tk.END, "Translation not available.\n")
+
+    def convert_to_voice(self):
+        translated_text = self.predicted_text.cget("text")
+        if translated_text:
+            engine = pyttsx3.init()
+            engine.say(translated_text)
+            engine.runAndWait()
 
 if __name__ == '__main__':
     root = tk.Tk()
