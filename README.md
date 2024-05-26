@@ -1,8 +1,13 @@
 # ViTA for Indian Sign Language
- A system designed to convert Indian Sign Language in text/speach
 
+A system designed to convert Indian Sign Language into text and speech.
 
-ViTA for Indian Sign Language is a software that converts Indian Sign Language (ISL) into text and audio. This project aims to bridge the communication gap for ISL users by providing a seamless translation of sign language into spoken and written forms. The software can translate signs into three languages: English, Hindi, and Kannada.
+ViTA for Indian Sign Language is software that converts Indian Sign Language (ISL) into text and audio. This project aims to bridge the communication gap for ISL users by providing a seamless translation of sign language into spoken and written forms. The software can translate signs into three languages: English, Hindi, and Kannada.
+
+## DEMO
+
+### Project Demo
+[![Project Demo](https://img.youtube.com/vi/xAFgURwEC0E/0.jpg)](https://www.youtube.com/watch?v=xAFgURwEC0E)
 
 ## Features
 
@@ -20,17 +25,10 @@ ViTA for Indian Sign Language is a software that converts Indian Sign Language (
 - **MediaPipe:** For hand tracking and landmark detection.
 - **NLP Model:** For interpreting signed phrases into valid text.
 - **Text-to-Speech:** For audio output of recognized signs.
-## DEMO :
-
-### Hand Gesture Recognition Demo 1
-[![Real-time Gesture Recognition](https://youtu.be/xAFgURwEC0E)](https://youtu.be/xAFgURwEC0E)
-
-
 
 ## Repository Structure
-![image](https://github.com/princeo741/ViTA-for-Indian-Sign-Language/assets/113790710/86ce014c-637d-4cfe-9cef-ba53574e08a0)
 
-
+![Repository Structure](https://github.com/princeo741/ViTA-for-Indian-Sign-Language/assets/113790710/86ce014c-637d-4cfe-9cef-ba53574e08a0)
 
 ## How to Use
 
@@ -62,13 +60,3 @@ ViTA for Indian Sign Language is a software that converts Indian Sign Language (
 ## Context Awareness (response.py)
 
 The `response.py` module includes an experimental "Context Awareness" feature. This feature records the surrounding environment and suggests appropriate responses to ease the signing process, reducing the number of actions a user needs to perform.
-
-## Demo Videos
-
-### Real-time Gesture Recognition
-[![Real-time Gesture Recognition](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=VIDEO_ID)
-
-### Multilingual Translation
-[![Multilingual Translation](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=VIDEO_ID)
-
-
