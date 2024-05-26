@@ -21,26 +21,11 @@ ViTA for Indian Sign Language is a software that converts Indian Sign Language (
 - **NLP Model:** For interpreting signed phrases into valid text.
 - **Text-to-Speech:** For audio output of recognized signs.
 ## DEMO :
+
 ### Hand Gesture Recognition Demo 1
-[![Real-time Gesture Recognition](https://img.youtube.com/vi/AGJYPiIPwTs/0.jpg)](https://www.youtube.com/watch?v=AGJYPiIPwTs)
+[![Real-time Gesture Recognition](https://youtu.be/xAFgURwEC0E)](https://youtu.be/xAFgURwEC0E)
 
-### Hand Gesture Recognition Set 1
-[![Multilingual Translation](https://img.youtube.com/vi/hxO5BlgL9Lc/0.jpg)](https://www.youtube.com/watch?v=hxO5BlgL9Lc)
 
-### Hand Gesture Recognition Set 2
-[![Hand Gesture Recognition Set 2](https://img.youtube.com/vi/i4EwFSNK55U/0.jpg)](https://www.youtube.com/watch?v=i4EwFSNK55U)
-
-### Hand Gesture Recognition Set 3
-[![Hand Gesture Recognition Set 3](https://img.youtube.com/vi/3yPIBYhYwcU/0.jpg)](https://www.youtube.com/watch?v=3yPIBYhYwcU)
-
-### Hand Gesture Recognition Com 1
-[![Hand Gesture Recognition Com 1](https://img.youtube.com/vi/5KcW0TfgAbY/0.jpg)](https://www.youtube.com/watch?v=5KcW0TfgAbY)
-
-### Hand Gesture Recognition Com 2
-[![Hand Gesture Recognition Com 2](https://img.youtube.com/vi/SjR2QW1ZLqM/0.jpg)](https://www.youtube.com/watch?v=SjR2QW1ZLqM)
-
-### Context Awareness
-[![Hand Gesture Recognition Additional Demo](https://img.youtube.com/vi/f7kiqtBDIuk/0.jpg)](https://www.youtube.com/watch?v=f7kiqtBDIuk)
 
 ## Repository Structure
 ![image](https://github.com/princeo741/ViTA-for-Indian-Sign-Language/assets/113790710/86ce014c-637d-4cfe-9cef-ba53574e08a0)
