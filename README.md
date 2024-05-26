@@ -7,7 +7,8 @@ ViTA for Indian Sign Language is software that converts Indian Sign Language (IS
 ## DEMO
 
 ### Project Demo
-[![Project Demo](https://img.youtube.com/vi/xAFgURwEC0E/0.jpg)](https://www.youtube.com/watch?v=xAFgURwEC0E)
+[![Click here to watch demo](https://img.youtube.com/vi/xAFgURwEC0E/0.jpg)](https://www.youtube.com/watch?v=xAFgURwEC0E)
+**Click here to watch demo**
 
 ## Features
 
