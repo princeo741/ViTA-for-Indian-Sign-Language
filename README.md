@@ -39,6 +39,8 @@ ViTA for Indian Sign Language is a software that converts Indian Sign Language (
 ### Hand Gesture Recognition Com 2
 [![Hand Gesture Recognition Com 2](https://img.youtube.com/vi/SjR2QW1ZLqM/0.jpg)](https://www.youtube.com/watch?v=SjR2QW1ZLqM)
 
+### Context Awareness
+[![Hand Gesture Recognition Additional Demo](https://img.youtube.com/vi/f7kiqtBDIuk/0.jpg)](https://www.youtube.com/watch?v=f7kiqtBDIuk)
 
 ## Repository Structure
 ![image](https://github.com/princeo741/ViTA-for-Indian-Sign-Language/assets/113790710/86ce014c-637d-4cfe-9cef-ba53574e08a0)
