@@ -88,51 +88,58 @@ class HandGestureApp:
         self.root.grid_rowconfigure(0, weight=1)
         self.root.grid_columnconfigure(0, weight=1)
 
+        # Video and buttons on the left side
         self.video_label = ttk.Label(self.scrollable_frame)
-        self.video_label.grid(row=0, column=0, columnspan=2, sticky="ew")
+        self.video_label.grid(row=0, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
 
         self.start_button = ttk.Button(self.scrollable_frame, text="Start Recording", command=self.start_recording)
-        self.start_button.grid(row=1, column=0, pady=10, sticky="ew")
+        self.start_button.grid(row=1, column=0, pady=10, sticky="ew", padx=10)
 
         self.stop_button = ttk.Button(self.scrollable_frame, text="Stop Recording", command=self.stop_recording)
-        self.stop_button.grid(row=1, column=1, pady=10, sticky="ew")
+        self.stop_button.grid(row=1, column=1, pady=10, sticky="ew", padx=10)
 
         self.train_button = ttk.Button(self.scrollable_frame, text="Train Model", command=self.train_model)
-        self.train_button.grid(row=2, column=0, pady=10, sticky="ew")
+        self.train_button.grid(row=2, column=0, pady=10, sticky="ew", padx=10)
 
         self.recognize_button = ttk.Button(self.scrollable_frame, text="Start Recognizing", command=self.start_recognition)
-        self.recognize_button.grid(row=2, column=1, pady=10, sticky="ew")
+        self.recognize_button.grid(row=2, column=1, pady=10, sticky="ew", padx=10)
 
         self.stop_recognize_button = ttk.Button(self.scrollable_frame, text="Stop Recognizing", command=self.stop_recognition)
-        self.stop_recognize_button.grid(row=3, column=0, pady=10, sticky="ew")
+        self.stop_recognize_button.grid(row=3, column=0, pady=10, sticky="ew", padx=10)
 
         self.reset_button = ttk.Button(self.scrollable_frame, text="Reset Model", command=self.reset_model)
-        self.reset_button.grid(row=3, column=1, pady=10, sticky="ew")
+        self.reset_button.grid(row=3, column=1, pady=10, sticky="ew", padx=10)
 
+        # Other elements on the right side
         self.gesture_label = ttk.Label(self.scrollable_frame, text="Recognized Gesture: None", font=("Helvetica", 16))
         self.gesture_label.grid(row=0, column=2, padx=10, pady=10, sticky="ew")
 
         self.history_text = tk.Text(self.scrollable_frame, width=40, height=10)
-        self.history_text.grid(row=1, column=2, rowspan=2, padx=10, pady=10, sticky="ew")
+        self.history_text.grid(row=1, column=2, rowspan=3, padx=10, pady=10, sticky="nsew")
 
         self.predicted_text_label = ttk.Label(self.scrollable_frame, text="PREDICTED TEXT", font=("Helvetica", 12))
-        self.predicted_text_label.grid(row=3, column=2, padx=10, pady=10, sticky="ew")
+        self.predicted_text_label.grid(row=4, column=2, padx=10, pady=10, sticky="ew")
 
         self.predicted_text = ttk.Label(self.scrollable_frame, text="", font=("Helvetica", 12))
-        self.predicted_text.grid(row=4, column=2, padx=10, pady=10, sticky="ew")
+        self.predicted_text.grid(row=5, column=2, padx=10, pady=10, sticky="ew")
 
         self.language_label = ttk.Label(self.scrollable_frame, text="Language", font=("Helvetica", 12))
-        self.language_label.grid(row=5, column=0, padx=10, pady=10, sticky="ew")
+        self.language_label.grid(row=6, column=0, padx=10, pady=10, sticky="ew")
 
         self.language_combobox = ttk.Combobox(self.scrollable_frame, values=["en", "hi", "kn"])
-        self.language_combobox.grid(row=5, column=1, padx=10, pady=10, sticky="ew")
+        self.language_combobox.grid(row=6, column=1, padx=10, pady=10, sticky="ew")
         self.language_combobox.set("en")
 
         self.translate_button = ttk.Button(self.scrollable_frame, text="Translate", command=self.translate_text)
-        self.translate_button.grid(row=5, column=2, padx=10, pady=10, sticky="ew")
+        self.translate_button.grid(row=6, column=2, padx=10, pady=10, sticky="ew")
 
         self.voice_button = ttk.Button(self.scrollable_frame, text="Convert to Voice", command=self.convert_to_voice)
-        self.voice_button.grid(row=6, column=2, padx=10, pady=10, sticky="ew")
+        self.voice_button.grid(row=7, column=2, padx=10, pady=10, sticky="ew")
+
+        for i in range(8):
+            self.scrollable_frame.grid_rowconfigure(i, weight=1)
+        for i in range(3):
+            self.scrollable_frame.grid_columnconfigure(i, weight=1)
 
         self.cap = None
         self.recording = False
