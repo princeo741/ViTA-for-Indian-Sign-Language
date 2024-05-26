@@ -62,3 +62,4 @@ ViTA for Indian Sign Language is software that converts Indian Sign Language (IS
 ## Context Awareness (response.py)
 
 The `response.py` module includes an experimental "Context Awareness" feature. This feature records the surrounding environment and suggests appropriate responses to ease the signing process, reducing the number of actions a user needs to perform.
+
